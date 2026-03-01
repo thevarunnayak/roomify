@@ -524,10 +524,10 @@
                             }
 
                             .badge {
-                                @apply absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md border border-zinc-200 shadow-sm;
+                                @apply absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md border border-zinc-200 shadow-sm group-hover:bg-primary group-hover:border-primary ;
 
                                 span {
-                                    @apply text-[10px] font-bold uppercase tracking-wider text-zinc-800;
+                                    @apply text-[10px] font-bold uppercase tracking-wider text-zinc-800 group-hover:text-white;
                                 }
                             }
                         }

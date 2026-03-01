@@ -1,41 +1,37 @@
-import React, { type ButtonHTMLAttributes } from "react";
+import { type ButtonHTMLAttributes } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "danger" | "ghost";
-  size?: "sm" | "md" | "lg";
+  variant?: 'primary' | 'secondary' | 'ghost' | 'outline';
+  size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      variant = "primary",
-      size = "md",
-      fullWidth = false,
-      className = "",
-      children,
-      ...props
-    },
-    ref
-  ) => {
-    const classes = [
-      "btn",
-      `btn--${variant}`,
-      `btn--${size}`,
-      fullWidth && "btn--fullWidth",
-      className,
-    ]
-      .filter(Boolean)
-      .join(" ");
+const Button = ({
+  variant = 'primary',
+  size = 'md',
+  fullWidth = false,
+  className = '',
+  children,
+  ...props
+}: ButtonProps) => {
+  const baseClass = 'btn';
+  const variantClass = `btn--${variant}`;
+  const sizeClass = `btn--${size}`;
+  const fullWidthClass = fullWidth ? 'btn--full' : '';
 
-    return (
-      <button ref={ref} className={classes} {...props}>
-        {children}
-      </button>
-    );
-  }
-);
+  const combinedClasses = [
+    baseClass,
+    variantClass,
+    sizeClass,
+    fullWidthClass,
+    className
+  ].filter(Boolean).join(' ');
 
-Button.displayName = "Button";
+  return (
+    <button className={combinedClasses} {...props}>
+      {children}
+    </button>
+  );
+};
 
 export default Button;
