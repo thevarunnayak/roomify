@@ -54,3 +54,35 @@ STYLE & LIGHTING:
 - Materials: realistic wood/tile floors, clean walls, subtle shadows.
 - Finish: professional architectural visualization; no text, no watermarks, no logos.
 `.trim();
+
+export const getRoomifyPrompt = (userEnhancement?: string) => `
+TASK: Convert the input 2D floor plan into a **photorealistic, top-down 3D architectural render**.
+
+STRICT REQUIREMENTS (do not violate):
+1) REMOVE ALL TEXT.
+2) GEOMETRY MUST MATCH exactly.
+3) TOP-DOWN ONLY.
+4) CLEAN, REALISTIC OUTPUT.
+5) NO EXTRA CONTENT.
+
+STRUCTURE & DETAILS:
+- Walls: Extrude precisely.
+- Doors: Convert arcs into open doors.
+- Windows: Realistic glass windows.
+
+FURNITURE & ROOM MAPPING:
+(Only where icons are clearly shown)
+
+STYLE & LIGHTING:
+- Bright neutral daylight.
+- Realistic materials.
+- Professional architectural visualization.
+
+${userEnhancement ? `
+USER STYLE CUSTOMIZATION (Apply only to materials, colors, textures — DO NOT change layout or geometry):
+${userEnhancement}, IMPORTANT:
+User customization must NOT modify structure, layout, room sizes, wall positions, or camera angle.
+` : ""}
+
+
+`.trim();

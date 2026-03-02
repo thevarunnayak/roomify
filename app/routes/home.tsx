@@ -17,29 +17,40 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<DesignItem[]>([]);
-  const handleComplete = async (base64Data: string) => {
+  const handleComplete = async (base64Data: string, enhancement?: string) => {
     const newId = Date.now().toString();
     const name = `Residence ${newId}`;
+
     const newItem = {
       id: newId,
       name,
       sourceImage: base64Data,
       renderedImage: undefined,
+      enhancement: enhancement || null, // optional store
       timestamp: Date.now(),
     };
-    const saved = await createProject({ item: newItem, visibility: "private" });
+
+    const saved = await createProject({
+      item: newItem,
+      visibility: "private",
+    });
+
     if (!saved) {
       console.error("Failed to create project. Please try again.");
       return false;
     }
+
     setProjects((prev) => [saved, ...prev]);
+
     navigate(`/visualizer/${newId}`, {
       state: {
         initialImage: saved.sourceImage,
         initialRendered: saved.renderedImage || null,
+        enhancement: enhancement || null,
         name,
       },
     });
+
     return true;
   };
   return (
