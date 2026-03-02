@@ -1,9 +1,9 @@
-import React from 'react'
-import { useLocation } from 'react-router';
+import React from "react";
+import { useLocation } from "react-router";
 
 const VisualizerId = () => {
-    const location = useLocation();
-    const { initialImage, name } = location.state || {};
+  const location = useLocation();
+  const { initialImage, name } = location.state || {};
   return (
     <section>
       <h1>{name || "Untitled Project"}</h1>
@@ -16,7 +16,7 @@ const VisualizerId = () => {
         )}
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default VisualizerId
+export default VisualizerId;
