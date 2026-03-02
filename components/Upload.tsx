@@ -1,22 +1,28 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useOutletContext } from "react-router";
-import { CheckCircle2, ImageIcon, UploadIcon } from "lucide-react";
 import {
-  PROGRESS_INCREMENT,
-  REDIRECT_DELAY_MS,
-  PROGRESS_INTERVAL_MS,
-} from "../lib/constants";
+  CheckCircle2,
+  CircleCheck,
+  ImageIcon,
+  Loader2,
+  UploadIcon,
+} from "lucide-react";
+import { PROGRESS_INCREMENT, PROGRESS_INTERVAL_MS } from "../lib/constants";
+import Button from "./ui/Button";
 
 interface UploadProps {
-  onComplete?: (base64Data: string) => void;
+  onComplete?: (base64Data: string, enhancement?: string) => void;
 }
 
 const Upload = ({ onComplete }: UploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [base64Data, setBase64Data] = useState<string | null>(null);
+  const [customText, setCustomText] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { isSignedIn } = useOutletContext<AuthContext>();
 
@@ -25,10 +31,6 @@ const Upload = ({ onComplete }: UploadProps) => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
-      }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
       }
     };
   }, []);
@@ -39,37 +41,50 @@ const Upload = ({ onComplete }: UploadProps) => {
 
       setFile(file);
       setProgress(0);
+      setBase64Data(null);
+      setCustomText("");
+      setIsGenerating(false);
 
       const reader = new FileReader();
+
       reader.onerror = () => {
         setFile(null);
         setProgress(0);
       };
+
       reader.onloadend = () => {
-        const base64Data = reader.result as string;
+        const result = reader.result as string;
+        setBase64Data(result);
 
         intervalRef.current = setInterval(() => {
           setProgress((prev) => {
             const next = prev + PROGRESS_INCREMENT;
+
             if (next >= 100) {
               if (intervalRef.current) {
                 clearInterval(intervalRef.current);
                 intervalRef.current = null;
               }
-              timeoutRef.current = setTimeout(() => {
-                onComplete?.(base64Data);
-                timeoutRef.current = null;
-              }, REDIRECT_DELAY_MS);
               return 100;
             }
+
             return next;
           });
         }, PROGRESS_INTERVAL_MS);
       };
+
       reader.readAsDataURL(file);
     },
-    [isSignedIn, onComplete],
+    [isSignedIn],
   );
+
+  const handleGenerate = () => {
+    if (!base64Data || !onComplete) return;
+
+    setIsGenerating(true);
+
+    onComplete(base64Data, customText.trim() ? customText.trim() : undefined);
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -88,7 +103,8 @@ const Upload = ({ onComplete }: UploadProps) => {
     if (!isSignedIn) return;
 
     const droppedFile = e.dataTransfer.files[0];
-    const allowedTypes = ["image/jpeg", "image/png"];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
     if (droppedFile && allowedTypes.includes(droppedFile.type)) {
       processFile(droppedFile);
     }
@@ -133,29 +149,68 @@ const Upload = ({ onComplete }: UploadProps) => {
           </div>
         </div>
       ) : (
-        <div className="upload-status">
-          <div className="status-content">
-            <div className="status-icon">
-              {progress === 100 ? (
-                <CheckCircle2 className="check" />
-              ) : (
-                <ImageIcon className="image" />
-              )}
-            </div>
+        <>
+          {/* Upload Status Box */}
+          <div className="upload-status">
+            <div className="status-content">
+              <div className="status-icon">
+                {progress === 100 ? (
+                  <CheckCircle2 className="check" />
+                ) : (
+                  <ImageIcon className="image" />
+                )}
+              </div>
 
-            <h3>{file.name}</h3>
+              <h3>{file.name}</h3>
 
-            <div className="progress">
-              <div className="bar" style={{ width: `${progress}%` }} />
-
-              <p className="status-text">
-                {progress < 100 ? "Analyzing Floor Plan..." : "Redirecting..."}
-              </p>
+              <div className="progress">
+                <div className="bar" style={{ width: `${progress}%` }} />
+                <p className="status-text">
+                  {progress < 100
+                    ? "Analyzing Floor Plan..."
+                    : "Upload Complete"}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+
+          {/* Customization Section BELOW upload box */}
+          {progress === 100 && (
+            <div className="mt-6 flex flex-col gap-4">
+              <textarea
+                placeholder="Optional: Add customization"
+                value={customText}
+                onChange={(e) => setCustomText(e.target.value)}
+                disabled={isGenerating}
+                className="w-full min-h-30 p-4 text-sm rounded-xl border border-gray-300 
+                          focus:outline-none focus:ring-2
+                         transition resize-none"
+              />
+
+              <Button
+                onClick={handleGenerate}
+                disabled={isGenerating}
+                className="w-full py-3 rounded-xl bg-primary text-white font-medium 
+                          transition-all duration-200 
+                          hover:scale-[1.01] active:scale-[0.99] 
+                          disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isGenerating ? (
+                  <>
+                    Generating <Loader2 className="w-4 h-4 ml-1" />
+                  </>
+                ) : (
+                  <>
+                    Generate <CircleCheck className="w-4 h-4 ml-1" />
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 };
+
 export default Upload;
